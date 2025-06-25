@@ -133,7 +133,41 @@
 
   function renderModeUI(mode, experts) {
     if (mode === "across") {
-      modeUI.innerHTML = `
+  modeUI.innerHTML = `
+    <div class="mb-4">
+      <label class="font-semibold block mb-1">Analyze:</label>
+      <div class="flex flex-col gap-2">
+        <label class="inline-flex items-center">
+          <input type="radio" name="across-submode" value="taus" class="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-800" />
+          <span class="ml-2">Across Taus</span>
+        </label>
+        <label class="inline-flex items-center">
+          <input type="radio" name="across-submode" value="tau-specific" class="form-radio h-4 w-4 text-indigo-600 dark:bg-gray-800" checked />
+          <span class="ml-2">Specific Tau</span>
+        </label>
+      </div>
+    </div>
+    <div id="across-submode-ui"></div>
+  `;
+
+  const subModeUI = document.getElementById("across-submode-ui");
+
+  function renderSubmodeUI(submode) {
+    if (submode === "taus") {
+      subModeUI.innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="font-semibold block mb-1" for="across-taus-error">Select Error Bound:</label>
+          <select id="across-taus-error" class="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600">
+            <option value="0.1" selected>0.1</option>
+          </select>
+        </div>
+      </div>
+    `;
+    document.getElementById("across-taus-error").onchange = updatePlot;
+    updatePlot();
+    } else {
+      subModeUI.innerHTML = `
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label class="font-semibold block mb-1" for="across-tau">Tau:</label>
@@ -173,8 +207,20 @@
           updatePlot();
         };
       });
+      updateTauErrorLinkage("across-tau", "across-error");
       updatePlot();
-    } else {
+    }
+  }
+
+  // Initial render of default option (specific tau)
+  renderSubmodeUI("tau-specific");
+
+  document.querySelectorAll("input[name='across-submode']").forEach(radio => {
+    radio.addEventListener("change", () => {
+      renderSubmodeUI(radio.value);
+    });
+  });
+} else {
       modeUI.innerHTML = `
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -276,20 +322,26 @@
     let path = "";
 
     if (mode === "across") {
+      const submode = document.querySelector("input[name='across-submode']:checked")?.value;
+    if (submode === "taus") {
+      const error = document.getElementById("across-taus-error")?.value;
+      path = `Multi_corrns/Variation_3d_Plots/Experts=${experts}/3D_Winnings_Error=${error}.html`;
+    } else {
       const tau = document.getElementById("across-tau")?.value;
       const error = document.getElementById("across-error")?.value;
       path = `Multi_corrns/Variation_Plots/Experts=${experts}/Tau=${tau}_Error=${error}.html`;
+    }
     } else if (mode === "specific") {
       const corr = document.getElementById("correlation")?.value;
       const plotType = document.getElementById("plot-type")?.value;
       if (plotType === "fstat") {
         const fstatType = document.getElementById("fstat-type")?.value;
-        path = `Basic_with_leadership_Abbreviated/Experts=${experts}/${corr}/MeanWinnings_SelRatio_Variation_with_${fstatType}.html`;
+        path = `Multi_corrns/Experts=${experts}/${corr}/MeanWinnings_SelRatio_Variation_with_${fstatType}.html`;
       } else if (plotType === "3d") {
         const tau = document.getElementById("three-d-tau")?.value;
         const error = document.getElementById("three-d-error")?.value;
         const config = document.getElementById("three-d-config")?.value;
-        path = `Basic_with_leadership_Abbreviated/Experts=${experts}/${corr}/Tau=${tau}_ErrorBound=${error}/Plots/Summary_${config}.html`;
+        path = `Multi_corrns/Experts=${experts}/${corr}/Tau=${tau}_ErrorBound=${error}/Plots/Summary_${config}.html`;
       }
     }
 
