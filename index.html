@@ -22,7 +22,16 @@
         </div>
       </button>
     </div>
-
+  <!-- Payoff Dropdown -->
+<div class="flex flex-col md:flex-row gap-4 items-center">
+  <label for="payoffSelect" class="text-lg font-semibold text-gray-700 dark:text-gray-300">Payoff Structure:</label>
+  <select id="payoffSelect" class="px-4 py-2 rounded-lg border dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100">
+    <option value="" disabled selected>-- Select Payoff --</option>
+    <option value="SharedPrize">SharedPrize</option>
+    <option value="Fixed3x">Fixed3x</option>
+    <option value="Quadratic">Quadratic</option>
+  </select>
+</div>
     <!-- Dynamic UI -->
     <div id="main-ui"></div>
 
@@ -43,6 +52,16 @@
   </div>
 
 <script>
+  let selectedPayoff =null;
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('payoffSelect').addEventListener('change', (e) => {
+      selectedPayoff = e.target.value;
+      updatePlots();  // 🔁 Will update iframe when payoff changes
+    });
+
+    // Optional: trigger plot once at page load
+    updatePlot();
+  });//
   const htmlEl = document.documentElement;
   const toggle = document.getElementById("darkToggle");
   const toggleIcon = document.getElementById("toggleIcon");
@@ -298,6 +317,10 @@
         const el = document.getElementById(id);
         if (el) el.onchange = updatePlot;
       });
+      document.getElementById("payoffSelect").addEventListener("change", (e) => {
+      selectedPayoff = e.target.value;
+      updatePlot();
+    });
       document.getElementById("three-d-tau").onchange = () => {
         updateTauErrorLinkage("three-d-tau", "three-d-error");
         updatePlot();
@@ -315,7 +338,7 @@
       updatePlot();
     }
   }
-
+  
   function updatePlot() {
     const experts = document.getElementById("experts-main")?.value;
     const mode = document.querySelector("input[name='analysis-mode']:checked")?.value;
@@ -325,23 +348,23 @@
       const submode = document.querySelector("input[name='across-submode']:checked")?.value;
     if (submode === "taus") {
       const error = document.getElementById("across-taus-error")?.value;
-      path = `Multi_corrns/Variation_3d_Plots/Experts=${experts}/3D_Winnings_Error=${error}.html`;
+      path = `Multi_corrns/Variation_3d_Plots/Experts=${experts}/${selectedPayoff}/3D_Winnings_Error=${error}.html`;
     } else {
       const tau = document.getElementById("across-tau")?.value;
       const error = document.getElementById("across-error")?.value;
-      path = `Multi_corrns/Variation_Plots/Experts=${experts}/Tau=${tau}_Error=${error}.html`;
+      path = `Multi_corrns/Variation_Plots/Experts=${experts}/${selectedPayoff}/Tau=${tau}_Error=${error}.html`;
     }
     } else if (mode === "specific") {
       const corr = document.getElementById("correlation")?.value;
       const plotType = document.getElementById("plot-type")?.value;
       if (plotType === "fstat") {
         const fstatType = document.getElementById("fstat-type")?.value;
-        path = `Multi_corrns/Experts=${experts}/${corr}/MeanWinnings_SelRatio_Variation_with_${fstatType}.html`;
+        path = `Multi_corrns/Experts=${experts}/${selectedPayoff}/${corr}/MeanWinnings_SelRatio_Variation_with_${fstatType}.html`;
       } else if (plotType === "3d") {
         const tau = document.getElementById("three-d-tau")?.value;
         const error = document.getElementById("three-d-error")?.value;
         const config = document.getElementById("three-d-config")?.value;
-        path = `Multi_corrns/Experts=${experts}/${corr}/Tau=${tau}_ErrorBound=${error}/Plots/Summary_${config}.html`;
+        path = `Multi_corrns/Experts=${experts}/${selectedPayoff}${corr}/Tau=${tau}_ErrorBound=${error}/Plots/Summary_${config}.html`;
       }
     }
 
@@ -351,7 +374,7 @@
       showToast();
     }
   }
-
+  
   function showToast() {
     const toast = document.getElementById("toast");
     toast.classList.remove("hidden");
@@ -373,6 +396,10 @@
     } else {
       alert("Please select a plot to download.");
     }
+  });
+  document.getElementById('payoffSelect').addEventListener('change', (e) => {
+    selectedPayoff = e.target.value;
+    updatePlot();
   });
 </script>
 </body>
